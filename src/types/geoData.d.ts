@@ -1,0 +1,26 @@
+export type GeoData = {
+	status: string;
+	message: string;
+	continent: string;
+	continentCodes: string;
+	country: string;
+	countryCode: string;
+	region: string;
+	regionName: string;
+	city: string;
+	zip: string;
+	lat: string;
+	lon: string;
+	timezone: string;
+	offset: string;
+	currency: string;
+	isp: string;
+	org: string;
+	as: string;
+	asname: string;
+	reverse: string;
+	mobile: string;
+	proxy: string;
+	hosting: string;
+	query: string;
+};

@@ -1,0 +1,297 @@
+-- DROP SCHEMA public;
+
+CREATE SCHEMA public AUTHORIZATION postgres;
+
+-- DROP SEQUENCE public.message_seen_info__id_seq;
+
+CREATE SEQUENCE public.message_seen_info__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;
+-- DROP SEQUENCE public.messages__id_seq;
+
+CREATE SEQUENCE public.messages__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;
+-- DROP SEQUENCE public.notifications__id_seq;
+
+CREATE SEQUENCE public.notifications__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;
+-- DROP SEQUENCE public.room_users__id_seq;
+
+CREATE SEQUENCE public.room_users__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;
+-- DROP SEQUENCE public.rooms__id_seq;
+
+CREATE SEQUENCE public.rooms__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;
+-- DROP SEQUENCE public.user_login_info__id_seq;
+
+CREATE SEQUENCE public.user_login_info__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;
+-- DROP SEQUENCE public.user_token_refresh_info__id_seq;
+
+CREATE SEQUENCE public.user_token_refresh_info__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;
+-- DROP SEQUENCE public.users__id_seq;
+
+CREATE SEQUENCE public.users__id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 100
+	NO CYCLE;-- public.users definition
+
+-- Drop table
+
+-- DROP TABLE public.users;
+
+CREATE TABLE public.users (
+	"_id" serial4 NOT NULL,
+	"userId" varchar NOT NULL,
+	"name" varchar NOT NULL,
+	"emailHash" varchar NOT NULL,
+	email varchar NOT NULL,
+	"emailVerified" bool NULL,
+	photo varchar NOT NULL,
+	"publicKey" varchar NOT NULL,
+	"fcmToken" varchar NOT NULL,
+	"authProvider" varchar NOT NULL,
+	locale varchar NOT NULL,
+	"joinedAt" varchar NOT NULL,
+	"updatedAt" varchar NOT NULL,
+	"isOnline" bool NULL DEFAULT false,
+	description varchar NULL,
+	CONSTRAINT users_pk PRIMARY KEY ("userId"),
+	CONSTRAINT users_un UNIQUE ("emailHash", email)
+);
+
+
+-- public.end_to_end_encrypted_strings definition
+
+-- Drop table
+
+-- DROP TABLE public.end_to_end_encrypted_strings;
+
+CREATE TABLE public.end_to_end_encrypted_strings (
+	"_id" int4 NOT NULL DEFAULT nextval('end_to_end_encrypted_keys__id_seq'::regclass),
+	"senderUserId" varchar NOT NULL,
+	"recieverUserId" varchar NOT NULL,
+	"encryptedString" varchar NOT NULL,
+	"sendAt" varchar NULL
+);
+
+
+-- public.notifications definition
+
+-- Drop table
+
+-- DROP TABLE public.notifications;
+
+CREATE TABLE public.notifications (
+	"_id" serial4 NOT NULL,
+	"notificationId" varchar NOT NULL,
+	"notificationText" varchar NOT NULL,
+	"notificationType" varchar NOT NULL,
+	"fromUserId" varchar NOT NULL,
+	"toUserId" varchar NOT NULL,
+	"createdAt" varchar NOT NULL,
+	"extraData" varchar NOT NULL,
+	CONSTRAINT notifications_pk PRIMARY KEY ("notificationId"),
+	CONSTRAINT notifications_fk FOREIGN KEY ("fromUserId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT,
+	CONSTRAINT notifications_fk_1 FOREIGN KEY ("toUserId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+
+-- public.rooms definition
+
+-- Drop table
+
+-- DROP TABLE public.rooms;
+
+CREATE TABLE public.rooms (
+	"_id" serial4 NOT NULL,
+	"roomId" varchar NOT NULL,
+	"roomName" varchar NULL,
+	"roomType" varchar NOT NULL,
+	"createdByUserId" varchar NOT NULL,
+	"createdAt" varchar NOT NULL,
+	"updatedAt" varchar NOT NULL,
+	"roomLogo" varchar NULL,
+	"roomDescription" varchar NULL,
+	CONSTRAINT rooms_pk PRIMARY KEY ("roomId"),
+	CONSTRAINT rooms_fk FOREIGN KEY ("createdByUserId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+
+-- public.user_login_info definition
+
+-- Drop table
+
+-- DROP TABLE public.user_login_info;
+
+CREATE TABLE public.user_login_info (
+	"_id" serial4 NOT NULL,
+	"loginId" varchar NOT NULL,
+	"userId" varchar NOT NULL,
+	"geoData" varchar NOT NULL,
+	ip varchar NOT NULL,
+	"userAgent" varchar NOT NULL,
+	"loggedInAt" varchar NOT NULL,
+	"isValid" bool NOT NULL,
+	CONSTRAINT user_login_info_pk PRIMARY KEY ("loginId"),
+	CONSTRAINT user_login_info_fk FOREIGN KEY ("userId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+
+-- public.user_token_refresh_info definition
+
+-- Drop table
+
+-- DROP TABLE public.user_token_refresh_info;
+
+CREATE TABLE public.user_token_refresh_info (
+	"_id" serial4 NOT NULL,
+	"loginId" varchar NOT NULL,
+	"refreshedAt" varchar NOT NULL,
+	"userAgent" varchar NOT NULL,
+	ip varchar NOT NULL,
+	"geoData" varchar NOT NULL,
+	CONSTRAINT user_token_refresh_info_pk PRIMARY KEY (_id),
+	CONSTRAINT user_token_refresh_info_fk FOREIGN KEY ("loginId") REFERENCES public.user_login_info("loginId") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+
+-- public.messages definition
+
+-- Drop table
+
+-- DROP TABLE public.messages;
+
+CREATE TABLE public.messages (
+	"_id" serial4 NOT NULL,
+	"messageId" varchar NOT NULL,
+	"messageText" varchar NOT NULL,
+	"messageType" varchar NOT NULL,
+	"senderUserId" varchar NOT NULL,
+	"recieverUserId" varchar NOT NULL,
+	"roomId" varchar NOT NULL,
+	"expressionList" json NULL,
+	"replyMessageId" varchar NULL,
+	"sendAt" varchar NOT NULL,
+	"updatedAt" varchar NOT NULL,
+	"isVisible" bool NULL DEFAULT true,
+	CONSTRAINT messages_pk PRIMARY KEY ("messageId"),
+	CONSTRAINT messages_fk FOREIGN KEY ("senderUserId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT,
+	CONSTRAINT messages_fk_1 FOREIGN KEY ("recieverUserId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT,
+	CONSTRAINT messages_fk_2 FOREIGN KEY ("roomId") REFERENCES public.rooms("roomId") ON DELETE RESTRICT ON UPDATE RESTRICT,
+	CONSTRAINT messages_fk_3 FOREIGN KEY ("replyMessageId") REFERENCES public.messages("messageId") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+
+-- public.room_users definition
+
+-- Drop table
+
+-- DROP TABLE public.room_users;
+
+CREATE TABLE public.room_users (
+	"_id" serial4 NOT NULL,
+	"roomId" varchar NOT NULL,
+	"userId" varchar NOT NULL,
+	"userRole" varchar NOT NULL,
+	"joinedAt" varchar NOT NULL,
+	"isUserBlocked" bool NULL DEFAULT false,
+	CONSTRAINT room_users_pk PRIMARY KEY ("roomId", "userId"),
+	CONSTRAINT room_users_fk FOREIGN KEY ("roomId") REFERENCES public.rooms("roomId") ON DELETE CASCADE ON UPDATE RESTRICT,
+	CONSTRAINT room_users_fk_1 FOREIGN KEY ("userId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+
+-- public.message_seen_info definition
+
+-- Drop table
+
+-- DROP TABLE public.message_seen_info;
+
+CREATE TABLE public.message_seen_info (
+	"_id" serial4 NOT NULL,
+	"messageId" varchar NOT NULL,
+	"messageSeenByUserId" varchar NOT NULL,
+	"messageSeenAt" varchar NOT NULL,
+	CONSTRAINT message_seen_info_pk PRIMARY KEY ("messageId", "messageSeenByUserId"),
+	CONSTRAINT message_seen_info_fk FOREIGN KEY ("messageId") REFERENCES public.messages("messageId") ON DELETE CASCADE ON UPDATE RESTRICT,
+	CONSTRAINT message_seen_info_fk_1 FOREIGN KEY ("messageSeenByUserId") REFERENCES public.users("userId") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+create or replace function public.fetch_rooms_and_users(user_id varchar, encryption_key varchar, latest_timestamp varchar, ref1 refcursor,ref2 refcursor)
+returns setof refcursor
+language plpgsql
+AS $function$
+begin
+	drop table if exists temp_table;
+	create temp table temp_table("roomId" varchar, "userId" varchar, "userRole" varchar);
+	insert into temp_table select r2."roomId" as "roomId" , r2."userId" as "userId", r2."userRole" as "userRole" from room_users r1 join room_users r2 on r1."roomId" = r2."roomId"  and r1."userId" <> r2."userId" and r1."userId" = user_id;
+if latest_timestamp is null then
+    OPEN ref1 FOR select u."userId", 
+   pgp_sym_decrypt(u."name"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "name", 
+  pgp_sym_decrypt(u.email::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as email, 
+ pgp_sym_decrypt(u.photo::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as photo, 
+pgp_sym_decrypt(u."publicKey"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "publicKey", 
+pgp_sym_decrypt(u."description"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "description",  tt."roomId", tt."userRole" from users u join temp_table tt on tt."userId" = u."userId" and u."userId" in (select "userId" from temp_table) ;
+    RETURN NEXT ref1;
+    OPEN ref2 for select r."roomId", r."createdByUserId", r."createdAt", r."updatedAt", r."roomType",  
+   pgp_sym_decrypt(r."roomName"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256')as "roomName",  
+  pgp_sym_decrypt(r."roomLogo"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "roomLogo", 
+ pgp_sym_decrypt(r."roomDescription"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "roomDescription" from rooms r where r."roomId" in (select "roomId" from temp_table);
+    RETURN NEXT ref2;
+else
+ OPEN ref1 FOR select u."userId", 
+   pgp_sym_decrypt(u."name"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "name", 
+  pgp_sym_decrypt(u.email::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as email, 
+ pgp_sym_decrypt(u.photo::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as photo, 
+pgp_sym_decrypt(u."publicKey"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "publicKey", 
+pgp_sym_decrypt(u."description"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "description",  tt."roomId", tt."userRole" from users u join temp_table tt on tt."userId" = u."userId" and (u."joinedAt" > latest_timestamp or u."updatedAt"  > latest_timestamp) and u."userId" in (select "userId" from temp_table) ;
+    RETURN NEXT ref1;
+    OPEN ref2 for select r."roomId", r."createdByUserId", r."createdAt", r."updatedAt", r."roomType",  
+   pgp_sym_decrypt(r."roomName"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256')as "roomName",  
+  pgp_sym_decrypt(r."roomLogo"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "roomLogo",  
+ pgp_sym_decrypt(r."roomDescription"::bytea, encryption_key, 'compress-algo=2, cipher-algo=aes256') as "roomDescription" from rooms r where (r."createdAt"  > latest_timestamp or r."updatedAt"  > latest_timestamp) and r."roomId" in (select "roomId" from temp_table);
+    RETURN NEXT ref2;
+end if;
+END;
+$function$
+;

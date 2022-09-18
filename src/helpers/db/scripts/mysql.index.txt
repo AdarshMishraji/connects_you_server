@@ -1,0 +1,104 @@
+CREATE TABLE `users` (
+  `userId` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `emailHash` varchar(256) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `emailVerified` tinyint(1) NOT NULL,
+  `photo` varchar(512) NOT NULL,
+  `publicKey` varchar(512) NOT NULL,
+  `fcmToken` varchar(512) NOT NULL,
+  `authProvider` varchar(100) NOT NULL,
+  `locale` varchar(100) NOT NULL,
+  `joinedAt` varchar(100) NOT NULL,
+  `updatedAt` varchar(100) NOT NULL,
+  PRIMARY KEY (`userId`),
+  UNIQUE KEY `users_UN` (`emailHash`,`name`,`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `userLoginInfo` (
+  `loginId` int NOT NULL AUTO_INCREMENT,
+  `userId` int NOT NULL,
+  `geoData` varchar(512) NOT NULL,
+  `ip` varchar(100) NOT NULL,
+  `userAgent` varchar(512) NOT NULL,
+  `loggedInAt` varchar(100) NOT NULL,
+  `isActive` tinyint(1) NOT NULL,
+  PRIMARY KEY (`loginId`),
+  KEY `user_login_info_FK` (`userId`),
+  CONSTRAINT `userLoginInfo_FK` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `rooms` (
+  `roomId` int NOT NULL AUTO_INCREMENT,
+  `roomName` varchar(100) NOT NULL,
+  `roomType` varchar(100) NOT NULL,
+  `createdByUserId` int NOT NULL,
+  `createdAt` varchar(100) NOT NULL,
+  `updatedAt` varchar(100) NOT NULL,
+  PRIMARY KEY (`roomId`),
+  KEY `rooms_FK` (`createdByUserId`),
+  CONSTRAINT `rooms_FK` FOREIGN KEY (`createdByUserId`) REFERENCES `users` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `roomUsers` (
+  `id` int NOT NULL,
+  `roomId` int NOT NULL,
+  `userId` int NOT NULL,
+  `userRole` varchar(100) DEFAULT 'normal',
+  `joinedAt` varchar(100) NOT NULL,
+  `isUserBlocked` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `room_users_FK` (`userId`),
+  KEY `roomUsers_FK` (`roomId`),
+  CONSTRAINT `roomUsers_FK` FOREIGN KEY (`roomId`) REFERENCES `rooms` (`roomId`),
+  CONSTRAINT `roomUsers_FK_1` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `notifications` (
+  `notificationId` int NOT NULL AUTO_INCREMENT,
+  `notificationText` varchar(100) NOT NULL,
+  `notificationType` varchar(100) NOT NULL,
+  `fromUserId` int NOT NULL,
+  `toUserId` int NOT NULL,
+  `createdAt` varchar(100) NOT NULL,
+  `extraData` varchar(512) NOT NULL,
+  PRIMARY KEY (`notificationId`),
+  KEY `notifications_FK` (`fromUserId`),
+  KEY `notifications_FK_1` (`toUserId`),
+  CONSTRAINT `notifications_FK` FOREIGN KEY (`fromUserId`) REFERENCES `users` (`userId`),
+  CONSTRAINT `notifications_FK_1` FOREIGN KEY (`toUserId`) REFERENCES `users` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `messages` (
+  `messageId` int NOT NULL AUTO_INCREMENT,
+  `message` varchar(1024) NOT NULL,
+  `messageType` varchar(100) NOT NULL,
+  `senderUserId` int NOT NULL,
+  `recieverUserId` int NOT NULL,
+  `roomId` int NOT NULL,
+  `expressionsList` json DEFAULT NULL,
+  `replyMessageId` varchar(100) NOT NULL,
+  `sendAt` varchar(100) NOT NULL,
+  `updatedAt` varchar(100) NOT NULL,
+  PRIMARY KEY (`messageId`),
+  KEY `messages_FK` (`senderUserId`),
+  KEY `messages_FK_1` (`recieverUserId`),
+  KEY `messages_FK_2` (`replyMessageId`),
+  KEY `messages_room_FK` (`roomId`),
+  CONSTRAINT `messages_FK` FOREIGN KEY (`senderUserId`) REFERENCES `users` (`userId`),
+  CONSTRAINT `messages_FK_1` FOREIGN KEY (`recieverUserId`) REFERENCES `users` (`userId`),
+  CONSTRAINT `messages_room_FK` FOREIGN KEY (`roomId`) REFERENCES `rooms` (`roomId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `messageSeenInfo` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `messageId` int NOT NULL,
+  `messageSeenAt` varchar(100) NOT NULL,
+  `messageSeenByUserId` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `message_seen_info_FK` (`messageId`),
+  KEY `message_seen_info_FK_1` (`messageSeenByUserId`),
+  KEY `messageSeenInfo_FK` (`id`,`messageId`),
+  CONSTRAINT `messageSeenInfo_FK` FOREIGN KEY (`messageId`) REFERENCES `messages` (`messageId`),
+  CONSTRAINT `messageSeenInfo_FK_1` FOREIGN KEY (`messageSeenByUserId`) REFERENCES `users` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

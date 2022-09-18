@@ -1,0 +1,7 @@
+variable | parameters: camelCase,
+function: camelCase,
+type: PascalCase
+constants (hard coded): UPPERCASE_UNDERSCORED
+response object properties: camelCase
+file name: camelCase
+events: snake_case
